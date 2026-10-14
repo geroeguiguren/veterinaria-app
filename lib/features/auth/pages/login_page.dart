@@ -4,7 +4,7 @@ import 'package:veterinaria_app/features/auth/pages/register_page.dart';
 import 'package:veterinaria_app/features/auth/widgets/auth_button.dart';
 import 'package:veterinaria_app/features/auth/widgets/auth_page_shell.dart';
 import 'package:veterinaria_app/features/auth/widgets/auth_text_field.dart';
-
+import 'package:veterinaria_app/features/admin/pages/home_admin_page.dart';
 class PaginaLogin extends StatefulWidget {
   const PaginaLogin({super.key});
 
@@ -38,9 +38,9 @@ class _EstadoPaginaLogin extends State<PaginaLogin> {
     }
 
     // Punto de reemplazo futuro: iniciar sesión contra MockAPI.
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Inicio de sesión exitoso')));
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (context) => const PaginaHomeAdmin()),
+    );
   }
 
   void _abrirRegistro() {
