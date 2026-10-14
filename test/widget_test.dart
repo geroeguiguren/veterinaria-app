@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:veterinaria_app/app/app.dart';
+import 'package:veterinaria_app/app/theme/app_theme.dart';
+import 'package:veterinaria_app/features/cliente/pages/home_cliente_page.dart';
 
 void main() {
   testWidgets('muestra login y navega a registro', (tester) async {
@@ -24,7 +26,7 @@ void main() {
     expect(find.text('Bienvenido de nuevo'), findsOneWidget);
   });
 
-  testWidgets('valida el login y confirma el envío', (tester) async {
+  testWidgets('valida el login y abre el inicio del cliente', (tester) async {
     await tester.pumpWidget(const AplicacionVeterinaria());
 
     await tester.tap(find.text('Ingresar'));
@@ -47,9 +49,9 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(0), ' ana@mail.com ');
     await tester.enterText(find.byType(TextFormField).at(1), '123456');
     await tester.tap(find.text('Ingresar'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    expect(find.text('Inicio de sesión exitoso'), findsOneWidget);
+    expect(find.text('Próximos turnos'), findsOneWidget);
   });
 
   testWidgets('valida el registro', (tester) async {
@@ -98,5 +100,19 @@ void main() {
     await tester.tap(crearCuenta);
     await tester.pumpAndSettle();
     expect(find.text('Registrarme'), findsOneWidget);
+  });
+
+  testWidgets('el inicio del cliente muestra accesos y próximos turnos', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: TemaAplicacion.claro, home: const PaginaHomeCliente()),
+    );
+
+    expect(find.text('Mis Mascotas'), findsOneWidget);
+    expect(find.text('Reservar Turno'), findsOneWidget);
+    expect(find.text('Mis Turnos'), findsOneWidget);
+    expect(find.text('Firulais'), findsOneWidget);
+    expect(find.text('Tyson'), findsOneWidget);
   });
 }
