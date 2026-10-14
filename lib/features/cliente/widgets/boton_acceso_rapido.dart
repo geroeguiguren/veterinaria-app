@@ -25,7 +25,7 @@ class BotonAccesoRapido extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icono, color: ColoresAplicacion.principal, size: 28),
               const SizedBox(height: 8),
