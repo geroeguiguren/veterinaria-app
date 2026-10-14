@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:veterinaria_app/features/cliente/data/datos_ejemplo.dart';
+import 'package:veterinaria_app/features/cliente/pages/mis_mascotas_page.dart';
+import 'package:veterinaria_app/features/cliente/pages/mis_turnos_page.dart';
+import 'package:veterinaria_app/features/cliente/pages/reservar_turno_veterinario_page.dart';
 import 'package:veterinaria_app/features/cliente/widgets/boton_acceso_rapido.dart';
 import 'package:veterinaria_app/features/cliente/widgets/tarjeta_turno.dart';
 
 class PaginaHomeCliente extends StatelessWidget {
   const PaginaHomeCliente({super.key});
 
-  void _mostrarProximamente(BuildContext context, String seccion) {
-    // Se reemplaza por la navegación real cuando exista cada pantalla.
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('$seccion: próximamente')));
+  void _abrirPagina(BuildContext context, Widget pagina) {
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (context) => pagina));
   }
 
   @override
@@ -38,7 +39,7 @@ class PaginaHomeCliente extends StatelessWidget {
                         etiqueta: 'Mis Mascotas',
                         icono: Icons.pets,
                         onPressed: () =>
-                            _mostrarProximamente(context, 'Mis Mascotas'),
+                            _abrirPagina(context, const PaginaMisMascotas()),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -46,8 +47,10 @@ class PaginaHomeCliente extends StatelessWidget {
                       child: BotonAccesoRapido(
                         etiqueta: 'Reservar Turno',
                         icono: Icons.event_available_outlined,
-                        onPressed: () =>
-                            _mostrarProximamente(context, 'Reservar Turno'),
+                        onPressed: () => _abrirPagina(
+                          context,
+                          const PaginaReservarTurnoVeterinario(),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -56,7 +59,7 @@ class PaginaHomeCliente extends StatelessWidget {
                         etiqueta: 'Mis Turnos',
                         icono: Icons.calendar_month_outlined,
                         onPressed: () =>
-                            _mostrarProximamente(context, 'Mis Turnos'),
+                            _abrirPagina(context, const PaginaMisTurnos()),
                       ),
                     ),
                   ],

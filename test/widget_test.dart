@@ -115,4 +115,65 @@ void main() {
     expect(find.text('Firulais'), findsOneWidget);
     expect(find.text('Tyson'), findsOneWidget);
   });
+
+  testWidgets('agrega una mascota desde Mis Mascotas', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: TemaAplicacion.claro, home: const PaginaHomeCliente()),
+    );
+
+    await tester.tap(find.text('Mis Mascotas'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Guardar'));
+    await tester.pump();
+    expect(find.text('Ingresá el nombre de la mascota'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).at(0), 'Rocky');
+    await tester.enterText(find.byType(TextFormField).at(1), 'Perro');
+    await tester.enterText(find.byType(TextFormField).at(2), 'Beagle');
+    await tester.enterText(find.byType(TextFormField).at(3), '2');
+    await tester.tap(find.text('Guardar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rocky'), findsOneWidget);
+  });
+
+  testWidgets('reserva un turno hasta la confirmación', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: TemaAplicacion.claro, home: const PaginaHomeCliente()),
+    );
+
+    await tester.tap(find.text('Reservar Turno'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dr. González'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('10:00'));
+    await tester.pump();
+    await tester.tap(find.text('Confirmar turno'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Horario: 10:00'), findsOneWidget);
+
+    await tester.tap(find.text('Confirmar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Turno reservado'), findsOneWidget);
+    expect(find.text('Próximos turnos'), findsOneWidget);
+  });
+
+  testWidgets('Mis Turnos muestra próximos e historial', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: TemaAplicacion.claro, home: const PaginaHomeCliente()),
+    );
+
+    await tester.tap(find.text('Mis Turnos'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mié 24/9 · 10:30'), findsOneWidget);
+
+    await tester.tap(find.text('Historial'));
+    await tester.pumpAndSettle();
+    expect(find.text('Lun 8/9 · 09:00'), findsOneWidget);
+  });
 }
