@@ -38,7 +38,7 @@ class TarjetaTurno extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(turno.veterinario, style: tema.bodyMedium),
+                  Text("Cliente: ${turno.duenio}", style: tema.bodyMedium),
                   Text(turno.fechaHora, style: tema.bodyMedium),
                 ],
               ),

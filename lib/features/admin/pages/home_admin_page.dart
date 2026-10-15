@@ -3,6 +3,8 @@ import 'package:veterinaria_app/features/admin/widgets/boton_acceso_rapido.dart'
 import 'package:veterinaria_app/features/admin/pages/pacientes_page.dart';
 import 'package:veterinaria_app/features/admin/pages/agenda_page.dart';
 import 'package:veterinaria_app/features/admin/pages/mis_horarios_page.dart';
+import 'package:veterinaria_app/features/admin/widgets/tarjeta_turno.dart';
+import 'package:veterinaria_app/features/data/datos_ejemplo.dart';
 
 class PaginaHomeAdmin extends StatelessWidget {
   const PaginaHomeAdmin({super.key});
@@ -12,9 +14,10 @@ class PaginaHomeAdmin extends StatelessWidget {
         .push(MaterialPageRoute<void>(builder: (context) => pagina));
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
- return Scaffold(
+    final tema = Theme.of(context).textTheme;
+    return Scaffold(
       appBar: AppBar(
         title: const Text('Inicio'),
         centerTitle: true,
@@ -63,13 +66,13 @@ class PaginaHomeAdmin extends StatelessWidget {
                     ],
                   ),
                 ),
-            //  const SizedBox(height: 28),
-            //  Text('Hoy', style: tema.titleLarge),
-            //  const SizedBox(height: 12),
-            //  for (final turno in turnosProximosEjemplo) ...[
-            //    TarjetaTurno(turno: turno),
-            //    const SizedBox(height: 12),
-            // ],
+                const SizedBox(height: 28),
+                Text('Hoy', style: tema.titleLarge),
+                const SizedBox(height: 12),
+                for (final turno in turnosProximosEjemplo) ...[
+                  TarjetaTurno(turno: turno),
+                  const SizedBox(height: 12),
+               ],
               ],
             ),
           ),

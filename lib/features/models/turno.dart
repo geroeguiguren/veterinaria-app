@@ -2,11 +2,11 @@
 class Turno {
   const Turno({
     required this.mascota,
-    required this.veterinario,
+    required this.duenio,
     required this.fechaHora,
   });
 
   final String mascota;
-  final String veterinario;
+  final String duenio;
   final String fechaHora;
 }
