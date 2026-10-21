@@ -6,6 +6,8 @@ import 'package:veterinaria_app/features/admin/pages/disponibilidad_page.dart';
 import 'package:veterinaria_app/features/admin/pages/pacientes_page.dart';
 import 'package:veterinaria_app/features/admin/widgets/boton_acceso_rapido.dart';
 import 'package:veterinaria_app/features/admin/widgets/tarjeta_turno.dart';
+import 'package:veterinaria_app/features/auth/pages/login_page.dart';
+import 'package:veterinaria_app/features/auth/servicio_autenticacion.dart';
 import 'package:veterinaria_app/features/data/datos_ejemplo.dart';
 import 'package:veterinaria_app/features/models/turno.dart';
 
@@ -15,6 +17,15 @@ class PaginaHomeAdmin extends StatelessWidget {
   void _abrirPagina(BuildContext context, Widget pagina) {
     Navigator.of(context)
         .push(MaterialPageRoute<void>(builder: (context) => pagina));
+  }
+
+  Future<void> _cerrarSesion(BuildContext context) async {
+    await ServicioAutenticacion.cerrarSesion();
+    if (!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (context) => const PaginaLogin()),
+      (ruta) => false,
+    );
   }
 
   @override
@@ -28,6 +39,13 @@ class PaginaHomeAdmin extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         scrolledUnderElevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'Cerrar sesión',
+            icon: const Icon(Icons.logout),
+            onPressed: () => _cerrarSesion(context),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Center(

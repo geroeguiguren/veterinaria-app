@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:veterinaria_app/features/admin/pages/home_admin_page.dart';
 import 'package:veterinaria_app/features/auth/auth_validators.dart';
+import 'package:veterinaria_app/features/auth/servicio_autenticacion.dart';
 import 'package:veterinaria_app/features/auth/widgets/auth_button.dart';
 import 'package:veterinaria_app/features/auth/widgets/auth_page_shell.dart';
 import 'package:veterinaria_app/features/auth/widgets/auth_text_field.dart';
@@ -20,6 +22,7 @@ class _EstadoPaginaRegistro extends State<PaginaRegistro> {
 
   bool _ocultarContrasena = true;
   bool _ocultarConfirmarContrasena = true;
+  bool _cargando = false;
   AutovalidateMode _modoAutovalidacion = AutovalidateMode.disabled;
 
   @override
@@ -31,7 +34,13 @@ class _EstadoPaginaRegistro extends State<PaginaRegistro> {
     super.dispose();
   }
 
-  void _enviarFormulario() {
+  void _mostrarMensaje(String mensaje) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(mensaje)));
+  }
+
+  Future<void> _enviarFormulario() async {
     _controladorNombre.text = _controladorNombre.text.trim();
     _controladorEmail.text = _controladorEmail.text.trim();
 
@@ -42,12 +51,25 @@ class _EstadoPaginaRegistro extends State<PaginaRegistro> {
       return;
     }
 
-    // Punto de reemplazo futuro: crear el usuario en MockAPI.
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Cuenta creada correctamente')),
+    setState(() => _cargando = true);
+    try {
+      await ServicioAutenticacion.registrar(
+        nombre: _controladorNombre.text,
+        email: _controladorEmail.text,
+        contrasena: _controladorContrasena.text,
       );
+      if (!mounted) return;
+      _mostrarMensaje('Cuenta creada correctamente');
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(builder: (context) => const PaginaHomeAdmin()),
+        (ruta) => false,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      _mostrarMensaje(ServicioAutenticacion.mensajeDeError(error));
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
   }
 
   void _volverAlLogin() {
@@ -120,6 +142,7 @@ class _EstadoPaginaRegistro extends State<PaginaRegistro> {
             const SizedBox(height: 24),
             BotonAutenticacion(
               etiqueta: 'Registrarme',
+              cargando: _cargando,
               onPressed: _enviarFormulario,
             ),
           ],
