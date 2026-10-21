@@ -1,12 +1,14 @@
-/// Turno reservado por un cliente para una de sus mascotas.
+
 class Turno {
   const Turno({
     required this.mascota,
     required this.duenio,
-    required this.fechaHora,
+    required this.fecha,
+    required this.hora,
   });
 
   final String mascota;
   final String duenio;
-  final String fechaHora;
+  final String fecha;
+  final String hora; 
 }

@@ -1,57 +1,49 @@
+import 'package:flutter/foundation.dart';
 import 'package:veterinaria_app/features/models/mascota.dart';
 import 'package:veterinaria_app/features/models/turno.dart';
 import 'package:veterinaria_app/features/models/cliente.dart';
 
-
 const List<Mascota> mascotasEjemplo = [
   Mascota(nombre: 'Firulais', especie: 'Perro', raza: 'Labrador', edad: 3),
   Mascota(nombre: 'Tyson', especie: 'Perro', raza: 'Bulldog', edad: 5),
+  Mascota(nombre: 'Rocky', especie: 'Perro', raza: 'Boxer', edad: 2),
 ];
 
 const List<Cliente> clientesEjemplo = [
-  Cliente(nombre: 'Juan Perez'),
-  Cliente(nombre: 'Ana Gomez'),
-  Cliente(nombre: 'Dra. Fernández'),
+  Cliente(nombre: 'Juan Pérez'),
+  Cliente(nombre: 'Ana Gómez'),
+  Cliente(nombre: 'Maximiliano Perez'),
 ];
 
-const String fechaTurnoEjemplo = 'Miércoles 24 de septiembre';
+const Map<String, String> pacientesEjemplo = {
+  'Firulais': 'Juan Pérez',
+  'Tyson': 'Ana Gómez',
+  'Rocky': 'Maximiliano Perez',
+};
 
-const List<String> horariosEjemplo = [
+const String fechaAgendaEjemplo = 'Miércoles 24 de septiembre';
+
+const List<String> franjasAgendaEjemplo = [
   '09:00',
-  '09:30',
   '10:00',
-  '10:30',
   '11:00',
-  '11:30',
+  '12:00',
+  '13:00',
 ];
 
-const List<Turno> turnosProximosEjemplo = [
-  Turno(
-    mascota: 'Firulais',
-    duenio: 'Juan Pérez',
-    fechaHora: 'Mié 24/9 · 10:30',
-  ),
-  Turno(
-    mascota: 'Tyson',
-    duenio: 'Ana Gomez',
-    fechaHora: 'Mié 24/9 · 11:00',
-  ),
-  Turno(
-    mascota: 'Matecito',
-    duenio: 'Andrea M. S.',
-    fechaHora: 'Mié 24/9 · 13:00',
-  ),
-];
+final ValueNotifier<List<Turno>> turnosHoy = ValueNotifier(const [
+  Turno(mascota: 'Firulais', duenio: 'Juan Pérez', fecha: 'Mié 24/9', hora: '09:00'),
+  Turno(mascota: 'Tyson', duenio: 'Ana Gómez', fecha: 'Mié 24/9', hora: '10:00'),
+  Turno(mascota: 'Rocky', duenio: 'Maximiliano Perez', fecha: 'Mié 24/9', hora: '13:00'),
+]);
 
-const List<Turno> turnosHistorialEjemplo = [
-  Turno(
-    mascota: 'Firulais',
-    duenio: 'Juan Pérez',
-    fechaHora: 'Lun 8/9 · 09:00',
-  ),
-  Turno(
-    mascota: 'Tyson',
-    duenio: 'Ana Gomez',
-    fechaHora: 'Vie 29/8 · 11:00',
-  ),
-];
+void cancelarTurno(Turno turno) {
+  turnosHoy.value = turnosHoy.value.where((t) => t != turno).toList();
+}
+
+Turno? turnoEnHora(String hora) {
+  for (final turno in turnosHoy.value) {
+    if (turno.hora == hora) return turno;
+  }
+  return null;
+}
