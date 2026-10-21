@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veterinaria_app/app/fechas.dart';
 import 'package:veterinaria_app/features/admin/pages/agenda_page.dart';
 import 'package:veterinaria_app/features/admin/pages/detalle_turno_page.dart';
 import 'package:veterinaria_app/features/admin/pages/disponibilidad_page.dart';
@@ -19,6 +20,7 @@ class PaginaHomeAdmin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tema = Theme.of(context).textTheme;
+    final hoy = DateTime.now();
 
     return Scaffold(
       appBar: AppBar(
@@ -71,19 +73,23 @@ class PaginaHomeAdmin extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 Text('Hoy', style: tema.titleLarge),
+                const SizedBox(height: 2),
+                Text(fechaLarga(hoy), style: tema.bodyMedium),
                 const SizedBox(height: 12),
                 ValueListenableBuilder<List<Turno>>(
-                  valueListenable: turnosHoy,
-                  builder: (context, turnos, _) {
-                    if (turnos.isEmpty) {
+                  valueListenable: turnosAgenda,
+                  builder: (context, todos, _) {
+                    final turnosHoy = turnosDelDia(hoy);
+                    if (turnosHoy.isEmpty) {
                       return Text(
                         'No hay turnos para hoy',
                         style: tema.bodyMedium,
                       );
                     }
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        for (final turno in turnos) ...[
+                        for (final turno in turnosHoy) ...[
                           TarjetaTurno(
                             turno: turno,
                             onTap: () => _abrirPagina(

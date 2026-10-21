@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:veterinaria_app/app/fechas.dart';
+import 'package:veterinaria_app/features/models/cliente.dart';
 import 'package:veterinaria_app/features/models/mascota.dart';
 import 'package:veterinaria_app/features/models/turno.dart';
-import 'package:veterinaria_app/features/models/cliente.dart';
 
 const List<Mascota> mascotasEjemplo = [
   Mascota(nombre: 'Firulais', especie: 'Perro', raza: 'Labrador', edad: 3),
@@ -21,29 +22,48 @@ const Map<String, String> pacientesEjemplo = {
   'Rocky': 'Maximiliano Perez',
 };
 
-const String fechaAgendaEjemplo = 'Miércoles 24 de septiembre';
-
-const List<String> franjasAgendaEjemplo = [
+const List<String> franjasAgenda = [
   '09:00',
   '10:00',
   '11:00',
   '12:00',
   '13:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
 ];
 
-final ValueNotifier<List<Turno>> turnosHoy = ValueNotifier(const [
-  Turno(mascota: 'Firulais', duenio: 'Juan Pérez', fecha: 'Mié 24/9', hora: '09:00'),
-  Turno(mascota: 'Tyson', duenio: 'Ana Gómez', fecha: 'Mié 24/9', hora: '10:00'),
-  Turno(mascota: 'Rocky', duenio: 'Maximiliano Perez', fecha: 'Mié 24/9', hora: '13:00'),
+final DateTime _hoy = DateTime.now();
+
+DateTime _dia(int diasDesdeHoy, int hora) =>
+    DateTime(_hoy.year, _hoy.month, _hoy.day + diasDesdeHoy, hora);
+
+final ValueNotifier<List<Turno>> turnosAgenda = ValueNotifier([
+  Turno(mascota: 'Firulais', duenio: 'Juan Pérez', fechaHora: _dia(0, 9)),
+  Turno(mascota: 'Tyson', duenio: 'Ana Gómez', fechaHora: _dia(0, 10)),
+  Turno(mascota: 'Rocky', duenio: 'Maximiliano Perez', fechaHora: _dia(0, 13)),
+  Turno(mascota: 'Firulais', duenio: 'Juan Pérez', fechaHora: _dia(1, 11)),
+  Turno(mascota: 'Tyson', duenio: 'Ana Gómez', fechaHora: _dia(3, 15)),
+  Turno(mascota: 'Rocky', duenio: 'Maximiliano Perez', fechaHora: _dia(7, 9)),
 ]);
 
-void cancelarTurno(Turno turno) {
-  turnosHoy.value = turnosHoy.value.where((t) => t != turno).toList();
+List<Turno> turnosDelDia(DateTime dia) {
+  final delDia = turnosAgenda.value
+      .where((turno) => mismoDia(turno.fechaHora, dia))
+      .toList();
+  delDia.sort((a, b) => a.fechaHora.compareTo(b.fechaHora));
+  return delDia;
 }
 
-Turno? turnoEnHora(String hora) {
-  for (final turno in turnosHoy.value) {
-    if (turno.hora == hora) return turno;
+Turno? turnoEn(DateTime dia, String hora) {
+  for (final turno in turnosAgenda.value) {
+    if (mismoDia(turno.fechaHora, dia) && turno.hora == hora) return turno;
   }
   return null;
+}
+
+void cancelarTurno(Turno turno) {
+  turnosAgenda.value =
+      turnosAgenda.value.where((t) => t != turno).toList();
 }
