@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:veterinaria_app/features/admin/pages/home_admin_page.dart';
 import 'package:veterinaria_app/features/auth/auth_validators.dart';
-import 'package:veterinaria_app/features/auth/pages/register_page.dart';
 import 'package:veterinaria_app/features/auth/servicio_autenticacion.dart';
 import 'package:veterinaria_app/features/auth/widgets/auth_button.dart';
 import 'package:veterinaria_app/features/auth/widgets/auth_page_shell.dart';
@@ -80,12 +79,6 @@ class _EstadoPaginaLogin extends State<PaginaLogin> {
     }
   }
 
-  void _abrirRegistro() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (context) => const PaginaRegistro()),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final temaTexto = Theme.of(context).textTheme;
@@ -143,21 +136,10 @@ class _EstadoPaginaLogin extends State<PaginaLogin> {
           ],
         ),
       ),
-      pie: Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          Text('¿No tenés cuenta? ', style: temaTexto.bodyMedium),
-          TextButton(
-            onPressed: _abrirRegistro,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: const Text('Crear cuenta'),
-          ),
-        ],
+      pie: Text(
+        'Las cuentas de veterinario las da de alta el administrador del sistema.',
+        style: temaTexto.bodyMedium,
+        textAlign: TextAlign.center,
       ),
     );
   }

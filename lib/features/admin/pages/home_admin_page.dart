@@ -9,10 +9,23 @@ import 'package:veterinaria_app/features/admin/widgets/tarjeta_turno.dart';
 import 'package:veterinaria_app/features/auth/pages/login_page.dart';
 import 'package:veterinaria_app/features/auth/servicio_autenticacion.dart';
 import 'package:veterinaria_app/features/data/datos_ejemplo.dart';
+import 'package:veterinaria_app/features/data/repositorio_turnos.dart';
 import 'package:veterinaria_app/features/models/turno.dart';
 
-class PaginaHomeAdmin extends StatelessWidget {
+class PaginaHomeAdmin extends StatefulWidget {
   const PaginaHomeAdmin({super.key});
+
+  @override
+  State<PaginaHomeAdmin> createState() => _EstadoPaginaHomeAdmin();
+}
+
+class _EstadoPaginaHomeAdmin extends State<PaginaHomeAdmin> {
+  @override
+  void initState() {
+    super.initState();
+    // Los turnos reales llegan en tiempo real mientras haya sesión.
+    RepositorioTurnos.escuchar();
+  }
 
   void _abrirPagina(BuildContext context, Widget pagina) {
     Navigator.of(context)
@@ -20,6 +33,7 @@ class PaginaHomeAdmin extends StatelessWidget {
   }
 
   Future<void> _cerrarSesion(BuildContext context) async {
+    await RepositorioTurnos.detener();
     await ServicioAutenticacion.cerrarSesion();
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(

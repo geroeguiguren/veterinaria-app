@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:veterinaria_app/app/theme/app_theme.dart';
-import 'package:veterinaria_app/features/data/datos_ejemplo.dart';
+import 'package:veterinaria_app/features/auth/servicio_autenticacion.dart';
+import 'package:veterinaria_app/features/data/repositorio_turnos.dart';
 import 'package:veterinaria_app/features/models/turno.dart';
 
 class PaginaDetalleTurno extends StatelessWidget {
@@ -34,11 +35,19 @@ class PaginaDetalleTurno extends StatelessWidget {
     );
 
     if (confirmado == true && context.mounted) {
-      cancelarTurno(turno);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Turno cancelado')),
-      );
-      Navigator.of(context).pop();
+      final mensajes = ScaffoldMessenger.of(context);
+      final navegador = Navigator.of(context);
+      try {
+        await RepositorioTurnos.cancelar(turno);
+        mensajes.showSnackBar(
+          const SnackBar(content: Text('Turno cancelado')),
+        );
+        navegador.pop();
+      } catch (error) {
+        mensajes.showSnackBar(
+          SnackBar(content: Text(ServicioAutenticacion.mensajeDeError(error))),
+        );
+      }
     }
   }
 

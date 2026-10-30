@@ -1,0 +1,190 @@
+rules_version = '2';
+
+// Reglas compartidas por la app de administración y la app de cliente
+// (proyecto Firebase: veterinaria-app-716bf).
+//
+// Roles (campo `rol` en usuarios/{uid}):
+//   - 'cliente'     -> se asigna SOLO al registrarse desde la app de cliente.
+//   - 'veterinario' -> se asigna SOLO a mano desde la consola de Firebase
+//                      (la consola no pasa por estas reglas). Ningún usuario
+//                      puede otorgarse ni cambiarse el rol desde una app.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estaLogueado() {
+      return request.auth != null;
+    }
+
+    function docUsuario(uid) {
+      return /databases/$(database)/documents/usuarios/$(uid);
+    }
+
+    function rolDe(uid) {
+      return exists(docUsuario(uid)) ? get(docUsuario(uid)).data.rol : '';
+    }
+
+    function esVeterinario() {
+      return estaLogueado() && rolDe(request.auth.uid) == 'veterinario';
+    }
+
+    function esCliente() {
+      return estaLogueado() && rolDe(request.auth.uid) == 'cliente';
+    }
+
+    // ---------------------------------------------------------------
+    // Usuarios
+    // ---------------------------------------------------------------
+    match /usuarios/{uid} {
+      // Cada uno lee su propio perfil. Los veterinarios son visibles para
+      // cualquier usuario logueado (el cliente elige con quién sacar turno).
+      // Los veterinarios también pueden leer los perfiles de los clientes.
+      allow get: if estaLogueado()
+        && (request.auth.uid == uid
+            || resource.data.rol == 'veterinario'
+            || esVeterinario());
+      allow list: if estaLogueado()
+        && (resource.data.rol == 'veterinario' || esVeterinario());
+
+      // Alta: solo el propio usuario y SIEMPRE como cliente.
+      allow create: if estaLogueado()
+        && request.auth.uid == uid
+        && request.resource.data.rol == 'cliente'
+        && request.resource.data.keys().hasOnly(
+             ['nombre', 'email', 'rol', 'creadoEn']);
+
+      // Edición: el usuario solo puede cambiar el campo `nombre` de SU perfil.
+      // El rol, el email y la fecha de alta quedan inmutables desde las apps.
+      allow update: if estaLogueado()
+        && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['nombre']);
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------
+    // Mascotas
+    // ---------------------------------------------------------------
+    match /mascotas/{mascotaId} {
+      // El dueño ve las suyas; los veterinarios las ven todas (pacientes).
+      allow read: if estaLogueado()
+        && (resource.data.duenioUid == request.auth.uid || esVeterinario());
+
+      allow create: if esCliente()
+        && request.resource.data.duenioUid == request.auth.uid
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() > 0;
+
+      allow update: if esCliente()
+        && resource.data.duenioUid == request.auth.uid
+        && request.resource.data.duenioUid == request.auth.uid;
+
+      allow delete: if esCliente()
+        && resource.data.duenioUid == request.auth.uid;
+    }
+
+    // ---------------------------------------------------------------
+    // Disponibilidad: un documento por veterinario, con ID = su UID.
+    // ---------------------------------------------------------------
+    match /disponibilidad/{vetUid} {
+      // Cualquier usuario logueado puede consultarla (para reservar).
+      allow read: if estaLogueado();
+
+      // Solo el veterinario dueño del documento puede crearlo o editarlo.
+      allow create, update: if esVeterinario()
+        && request.auth.uid == vetUid
+        && request.resource.data.veterinarioUid == vetUid
+        && request.resource.data.duracionMin == 60
+        && request.resource.data.dias is map;
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------
+    // Horarios ocupados: un documento por horario reservado.
+    //   ID = {veterinarioUid}_{aaaaMMdd}_{HHmm}
+    // El ID es determinístico: un horario solo puede reservarse UNA vez
+    // porque `create` falla si el documento ya existe. Se crea siempre en
+    // el mismo lote/transacción que su turno, y se elimina al cancelarlo.
+    // No contiene datos personales, por eso es legible por todos.
+    // ---------------------------------------------------------------
+    match /ocupados/{ocupadoId} {
+      allow read: if estaLogueado();
+
+      allow create: if esCliente()
+        && request.resource.data.keys().hasOnly(
+             ['veterinarioUid', 'dia', 'hora', 'clave', 'fechaHora', 'turnoId'])
+        && ocupadoId ==
+             request.resource.data.veterinarioUid + '_' + request.resource.data.clave
+        && request.resource.data.fechaHora is timestamp
+        && request.resource.data.fechaHora > request.time
+        && rolDe(request.resource.data.veterinarioUid) == 'veterinario'
+        // Debe existir (en el mismo lote) un turno NUEVO del propio cliente.
+        && !exists(/databases/$(database)/documents/turnos/$(request.resource.data.turnoId))
+        && getAfter(/databases/$(database)/documents/turnos/$(request.resource.data.turnoId)).data.clienteUid
+             == request.auth.uid
+        && getAfter(/databases/$(database)/documents/turnos/$(request.resource.data.turnoId)).data.clave
+             == request.resource.data.clave
+        && getAfter(/databases/$(database)/documents/turnos/$(request.resource.data.turnoId)).data.veterinarioUid
+             == request.resource.data.veterinarioUid;
+
+      allow update: if false;
+
+      // Solo se libera si, en el mismo lote, su turno pasa a 'cancelado' y
+      // quien lo hace es el cliente o el veterinario de ese turno.
+      allow delete: if estaLogueado()
+        && getAfter(/databases/$(database)/documents/turnos/$(resource.data.turnoId)).data.estado
+             == 'cancelado'
+        && (getAfter(/databases/$(database)/documents/turnos/$(resource.data.turnoId)).data.clienteUid
+              == request.auth.uid
+            || getAfter(/databases/$(database)/documents/turnos/$(resource.data.turnoId)).data.veterinarioUid
+              == request.auth.uid);
+    }
+
+    // ---------------------------------------------------------------
+    // Turnos
+    // ---------------------------------------------------------------
+    match /turnos/{turnoId} {
+      // Lo ven solo el cliente y el veterinario del turno.
+      allow read: if estaLogueado()
+        && (resource.data.clienteUid == request.auth.uid
+            || resource.data.veterinarioUid == request.auth.uid);
+
+      // Reserva: la hace un cliente, a su nombre, con una mascota SUYA, para
+      // un veterinario real y en el futuro. Debe crear a la vez el documento
+      // `ocupados` de ese horario (lo que impide reservas duplicadas).
+      allow create: if esCliente()
+        && request.resource.data.keys().hasOnly(
+             ['clienteUid', 'clienteNombre', 'mascotaId', 'mascotaNombre',
+              'veterinarioUid', 'veterinarioNombre', 'fechaHora', 'dia',
+              'hora', 'clave', 'estado', 'creadoEn'])
+        && request.resource.data.clienteUid == request.auth.uid
+        && request.resource.data.estado == 'reservado'
+        && request.resource.data.fechaHora is timestamp
+        && request.resource.data.fechaHora > request.time
+        && rolDe(request.resource.data.veterinarioUid) == 'veterinario'
+        && get(/databases/$(database)/documents/mascotas/$(request.resource.data.mascotaId)).data.duenioUid
+             == request.auth.uid
+        && existsAfter(/databases/$(database)/documents/ocupados/$(request.resource.data.veterinarioUid + '_' + request.resource.data.clave))
+        && getAfter(/databases/$(database)/documents/ocupados/$(request.resource.data.veterinarioUid + '_' + request.resource.data.clave)).data.turnoId
+             == turnoId;
+
+      // Cancelación: la puede hacer el cliente o el veterinario del turno.
+      // Solo cambia estado, canceladoPor y canceladoEn.
+      allow update: if estaLogueado()
+        && (resource.data.clienteUid == request.auth.uid
+            || resource.data.veterinarioUid == request.auth.uid)
+        && resource.data.estado == 'reservado'
+        && request.resource.data.estado == 'cancelado'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['estado', 'canceladoPor', 'canceladoEn'])
+        && request.resource.data.canceladoPor ==
+             (resource.data.clienteUid == request.auth.uid ? 'cliente' : 'veterinario')
+        && request.resource.data.canceladoEn == request.time;
+
+      allow delete: if false;
+    }
+
+    // Todo lo demás queda denegado hasta que se defina explícitamente.
+  }
+}
