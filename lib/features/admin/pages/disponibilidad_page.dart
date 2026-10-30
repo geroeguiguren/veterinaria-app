@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:veterinaria_app/app/theme/app_theme.dart';
+import 'package:veterinaria_app/features/auth/servicio_autenticacion.dart';
+import 'package:veterinaria_app/features/data/repositorio_disponibilidad.dart';
 
 
 class _HorarioDia {
@@ -46,6 +48,9 @@ class _EstadoPaginaDisponibilidad extends State<PaginaDisponibilidad> {
       ),
   };
 
+  bool _cargando = true;
+  bool _guardando = false;
+
   String _formatear(TimeOfDay hora) {
     final h = hora.hour.toString().padLeft(2, '0');
     final m = hora.minute.toString().padLeft(2, '0');
@@ -81,16 +86,81 @@ class _EstadoPaginaDisponibilidad extends State<PaginaDisponibilidad> {
     });
   }
 
-  void _guardar() {
+  @override
+  void initState() {
+    super.initState();
+    _cargarGuardada();
+  }
+
+  /// Si el veterinario ya había guardado su disponibilidad, la recupera.
+  Future<void> _cargarGuardada() async {
+    try {
+      final guardada = await RepositorioDisponibilidad.cargar();
+      if (!mounted) return;
+      if (guardada != null) {
+        setState(() {
+          _diasSeleccionados.clear();
+          for (final dia in _dias) {
+            final horario = guardada[_clave(dia)];
+            if (horario == null) continue;
+            if (horario.activo) _diasSeleccionados.add(dia);
+            _horarios[dia]!
+              ..desde = _parsear(horario.desde)
+              ..hasta = _parsear(horario.hasta);
+          }
+        });
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ServicioAutenticacion.mensajeDeError(error))),
+      );
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
+  /// "Mie" -> "mie": clave del día dentro del documento de Firestore.
+  String _clave(String dia) => dia.toLowerCase();
+
+  TimeOfDay _parsear(String texto) {
+    final partes = texto.split(':');
+    return TimeOfDay(
+      hour: int.tryParse(partes.first) ?? 9,
+      minute: int.tryParse(partes.last) ?? 0,
+    );
+  }
+
+  Future<void> _guardar() async {
     if (_diasSeleccionados.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Elegí al menos un día de atención')),
       );
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Disponibilidad guardada')),
-    );
+
+    setState(() => _guardando = true);
+    try {
+      await RepositorioDisponibilidad.guardar({
+        for (final dia in _dias)
+          _clave(dia): HorarioAtencion(
+            activo: _diasSeleccionados.contains(dia),
+            desde: _formatear(_horarios[dia]!.desde),
+            hasta: _formatear(_horarios[dia]!.hasta),
+          ),
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Disponibilidad guardada')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ServicioAutenticacion.mensajeDeError(error))),
+      );
+    } finally {
+      if (mounted) setState(() => _guardando = false);
+    }
   }
 
   @override
@@ -147,7 +217,8 @@ class _EstadoPaginaDisponibilidad extends State<PaginaDisponibilidad> {
                 Text('Horario de atención', style: estiloTitulo),
                 const SizedBox(height: 4),
                 Text(
-                  'Tocá la hora de cada día para cambiarla.',
+                  'Tocá la hora de cada día para cambiarla. '
+                  'Los turnos duran 60 minutos.',
                   style: tema.bodyMedium,
                 ),
                 const SizedBox(height: 12),
@@ -169,8 +240,17 @@ class _EstadoPaginaDisponibilidad extends State<PaginaDisponibilidad> {
                   ],
                 const SizedBox(height: 20),
                 FilledButton(
-                  onPressed: _guardar,
-                  child: const Text('Guardar'),
+                  onPressed: (_cargando || _guardando) ? null : _guardar,
+                  child: (_cargando || _guardando)
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Guardar'),
                 ),
               ],
             ),

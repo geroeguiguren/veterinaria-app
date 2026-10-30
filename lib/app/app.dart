@@ -13,9 +13,33 @@ class AplicacionVeterinaria extends StatelessWidget {
       title: 'Veterinaria',
       debugShowCheckedModeBanner: false,
       theme: TemaAplicacion.claro,
-      home: ServicioAutenticacion.usuarioActual == null
-          ? const PaginaLogin()
-          : const PaginaHomeAdmin(),
+      home: const _PantallaInicial(),
+    );
+  }
+}
+
+/// Decide la primera pantalla: login, o el home si hay una sesión de
+/// veterinario válida (el rol se verifica contra Firestore).
+class _PantallaInicial extends StatelessWidget {
+  const _PantallaInicial();
+
+  @override
+  Widget build(BuildContext context) {
+    if (ServicioAutenticacion.usuarioActual == null) {
+      return const PaginaLogin();
+    }
+    return FutureBuilder<bool>(
+      future: ServicioAutenticacion.sesionEsVeterinario(),
+      builder: (context, estado) {
+        if (estado.connectionState != ConnectionState.done) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return estado.data == true
+            ? const PaginaHomeAdmin()
+            : const PaginaLogin();
+      },
     );
   }
 }

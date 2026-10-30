@@ -26,17 +26,25 @@ class PaginaDiaAgenda extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 440),
             child: ValueListenableBuilder<List<Turno>>(
               valueListenable: turnosAgenda,
-              builder: (context, todos, _) => ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  Text(fechaLarga(dia), style: tema.titleLarge),
-                  const SizedBox(height: 16),
-                  for (final hora in franjasAgenda) ...[
-                    _FranjaHoraria(dia: dia, hora: hora),
-                    const SizedBox(height: 10),
+              builder: (context, todos, _) {
+                // Franjas fijas + cualquier horario con turno fuera de ellas.
+                final horas = {
+                  ...franjasAgenda,
+                  for (final turno in turnosDelDia(dia)) turno.hora,
+                }.toList()
+                  ..sort();
+                return ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    Text(fechaLarga(dia), style: tema.titleLarge),
+                    const SizedBox(height: 16),
+                    for (final hora in horas) ...[
+                      _FranjaHoraria(dia: dia, hora: hora),
+                      const SizedBox(height: 10),
+                    ],
                   ],
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),

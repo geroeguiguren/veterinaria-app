@@ -34,19 +34,11 @@ const List<String> franjasAgenda = [
   '17:00',
 ];
 
-final DateTime _hoy = DateTime.now();
-
-DateTime _dia(int diasDesdeHoy, int hora) =>
-    DateTime(_hoy.year, _hoy.month, _hoy.day + diasDesdeHoy, hora);
-
-final ValueNotifier<List<Turno>> turnosAgenda = ValueNotifier([
-  Turno(mascota: 'Firulais', duenio: 'Juan Pérez', fechaHora: _dia(0, 9)),
-  Turno(mascota: 'Tyson', duenio: 'Ana Gómez', fechaHora: _dia(0, 10)),
-  Turno(mascota: 'Rocky', duenio: 'Maximiliano Perez', fechaHora: _dia(0, 13)),
-  Turno(mascota: 'Firulais', duenio: 'Juan Pérez', fechaHora: _dia(1, 11)),
-  Turno(mascota: 'Tyson', duenio: 'Ana Gómez', fechaHora: _dia(3, 15)),
-  Turno(mascota: 'Rocky', duenio: 'Maximiliano Perez', fechaHora: _dia(7, 9)),
-]);
+/// Turnos reservados del veterinario con sesión iniciada.
+///
+/// Lo alimenta en tiempo real `RepositorioTurnos` (Firestore); las pantallas
+/// de agenda lo observan con `ValueListenableBuilder`.
+final ValueNotifier<List<Turno>> turnosAgenda = ValueNotifier(const <Turno>[]);
 
 List<Turno> turnosDelDia(DateTime dia) {
   final delDia = turnosAgenda.value
@@ -61,9 +53,4 @@ Turno? turnoEn(DateTime dia, String hora) {
     if (mismoDia(turno.fechaHora, dia) && turno.hora == hora) return turno;
   }
   return null;
-}
-
-void cancelarTurno(Turno turno) {
-  turnosAgenda.value =
-      turnosAgenda.value.where((t) => t != turno).toList();
 }
