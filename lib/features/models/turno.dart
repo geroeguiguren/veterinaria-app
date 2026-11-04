@@ -8,6 +8,9 @@ class Turno {
     required this.duenio,
     required this.fechaHora,
     this.clave = '',
+    this.mascotaId = '',
+    this.clienteUid = '',
+    this.veterinarioNombre = '',
   });
 
   /// Id del documento en `turnos` de Firestore.
@@ -21,6 +24,11 @@ class Turno {
   /// Clave del horario ("aaaaMMdd_HHmm"), usada para liberarlo al cancelar.
   final String clave;
 
+  /// campos necesarios para la creación del historial clínico
+  final String mascotaId;
+  final String clienteUid;
+  final String veterinarioNombre;
+
   String get fecha => fechaCorta(fechaHora);
   String get hora => horaTexto(fechaHora);
 
@@ -32,6 +40,9 @@ class Turno {
       fechaHora:
           (datos['fechaHora'] as Timestamp?)?.toDate() ?? DateTime.now(),
       clave: (datos['clave'] as String?) ?? '',
+      mascotaId: (datos['mascotaId'] as String?) ?? '',
+      clienteUid: (datos['clienteUid'] as String?) ?? '',
+      veterinarioNombre: (datos['veterinarioNombre'] as String?) ?? '',
     );
   }
 }
