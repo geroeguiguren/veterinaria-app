@@ -3,6 +3,7 @@ import 'package:veterinaria_app/app/theme/app_theme.dart';
 import 'package:veterinaria_app/features/auth/servicio_autenticacion.dart';
 import 'package:veterinaria_app/features/data/repositorio_turnos.dart';
 import 'package:veterinaria_app/features/models/turno.dart';
+import 'package:veterinaria_app/features/admin/pages/historial_turno_page.dart';
 
 class PaginaDetalleTurno extends StatelessWidget {
   const PaginaDetalleTurno({super.key, required this.turno});
@@ -91,6 +92,19 @@ class PaginaDetalleTurno extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
+                 FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (context) => PaginaHistorialTurno(turno: turno),
+                    ),
+                  ),
+                  icon: const Icon(Icons.medical_information_outlined),
+                  label: const Text('Historia clínica'),
+                ),
+                const SizedBox(height: 12),
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: ColoresAplicacion.error,

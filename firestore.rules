@@ -185,6 +185,27 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+        match /historial/{turnoId} {
+      allow read: if estaLogueado()
+        && (esVeterinario() || resource.data.clienteUid == request.auth.uid);
+
+      allow create: if esVeterinario()
+        && get(/databases/$(database)/documents/turnos/$(turnoId)).data.veterinarioUid == request.auth.uid
+        && request.resource.data.veterinarioUid == request.auth.uid
+        && request.resource.data.clienteUid ==
+             get(/databases/$(database)/documents/turnos/$(turnoId)).data.clienteUid
+        && request.resource.data.mascotaId ==
+             get(/databases/$(database)/documents/turnos/$(turnoId)).data.mascotaId;
+
+      allow update: if esVeterinario()
+        && resource.data.veterinarioUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['estadoGeneral', 'diagnostico', 'tratamientos',
+                       'estudios', 'medicamentos', 'observaciones', 'actualizadoEn']);
+
+      allow delete: if false;
+    }
+
     // Todo lo demás queda denegado hasta que se defina explícitamente.
   }
 }

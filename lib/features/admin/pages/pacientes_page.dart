@@ -3,6 +3,7 @@ import 'package:veterinaria_app/app/theme/app_theme.dart';
 import 'package:veterinaria_app/features/auth/servicio_autenticacion.dart';
 import 'package:veterinaria_app/features/data/repositorio_pacientes.dart';
 import 'package:veterinaria_app/features/models/paciente.dart';
+import 'package:veterinaria_app/features/admin/pages/historial_paciente_page.dart';
 
 class PaginaPacientes extends StatefulWidget {
   const PaginaPacientes({super.key});
@@ -59,8 +60,15 @@ class _EstadoPaginaPacientes extends State<PaginaPacientes> {
                   itemCount: pacientes.length,
                   separatorBuilder: (context, indice) =>
                       const SizedBox(height: 12),
-                  itemBuilder: (context, indice) =>
-                      _TarjetaPaciente(paciente: pacientes[indice]),
+                  itemBuilder: (context, indice) => GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) =>
+                            PaginaHistorialPaciente(paciente: pacientes[indice]),
+                      ),
+                    ),
+                    child: _TarjetaPaciente(paciente: pacientes[indice]),
+                  ),
                 );
               },
             ),
