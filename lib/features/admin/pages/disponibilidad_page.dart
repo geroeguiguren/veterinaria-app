@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:veterinaria_app/app/theme/app_theme.dart';
 import 'package:veterinaria_app/features/auth/servicio_autenticacion.dart';
 import 'package:veterinaria_app/features/data/repositorio_disponibilidad.dart';
+import 'package:veterinaria_app/features/models/horario_atencion.dart';
 
 
 class _HorarioDia {

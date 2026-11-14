@@ -1,18 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-/// Horario de atención de un día, con horas en formato "HH:mm".
-class HorarioAtencion {
-  const HorarioAtencion({
-    required this.activo,
-    required this.desde,
-    required this.hasta,
-  });
-
-  final bool activo;
-  final String desde;
-  final String hasta;
-}
+import 'package:veterinaria_app/features/models/horario_atencion.dart';
 
 /// Disponibilidad del veterinario con sesión iniciada.
 ///
@@ -33,7 +21,7 @@ class RepositorioDisponibilidad {
         .doc(usuario.uid);
   }
 
-  /// Devuelve la disponibilidad guardada, o `null` si todavía no definió una.
+
   static Future<Map<String, HorarioAtencion>?> cargar() async {
     final documento = await _documento().get();
     final datos = documento.data();
@@ -44,27 +32,20 @@ class RepositorioDisponibilidad {
     for (final entrada in dias.entries) {
       final valor = entrada.value;
       if (valor is! Map) continue;
-      resultado[entrada.key as String] = HorarioAtencion(
-        activo: valor['activo'] == true,
-        desde: (valor['desde'] as String?) ?? '09:00',
-        hasta: (valor['hasta'] as String?) ?? '18:00',
-      );
+      resultado[entrada.key as String] =
+          HorarioAtencion.desdeMapa(Map<String, dynamic>.from(valor));
     }
     return resultado;
   }
 
   static Future<void> guardar(Map<String, HorarioAtencion> dias) async {
-    final usuario = FirebaseAuth.instance.currentUser!;
-    await _documento().set({
-      'veterinarioUid': usuario.uid,
+    final documento = _documento();
+    await documento.set({
+      'veterinarioUid': documento.id,
       'duracionMin': duracionMin,
       'dias': {
         for (final entrada in dias.entries)
-          entrada.key: {
-            'activo': entrada.value.activo,
-            'desde': entrada.value.desde,
-            'hasta': entrada.value.hasta,
-          },
+          entrada.key: entrada.value.aMapa(),
       },
       'actualizadoEn': FieldValue.serverTimestamp(),
     });
