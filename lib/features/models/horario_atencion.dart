@@ -17,11 +17,8 @@ class HorarioAtencion {
     );
   }
 
-  Map<String, dynamic> aMapa() {
-    return {
-      'activo': activo,
-      'desde': desde,
-      'hasta': hasta,
+   Map<String, dynamic> aMapa() => {
+      'activo':activo, 'desde':desde, 'hasta':hasta
     };
   }
 }
