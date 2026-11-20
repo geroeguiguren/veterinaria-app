@@ -21,20 +21,26 @@ class RepositorioDisponibilidad {
         .doc(usuario.uid);
   }
 
-
   static Future<Map<String, HorarioAtencion>?> cargar() async {
-    final documento = await _documento().get();
-    final datos = documento.data();
+
+    final datos = (await _documento().get()).data();
+
     if (datos == null) return null;
 
     final dias = (datos['dias'] as Map?) ?? const {};
+    return _convertirDias(dias);
+  }
+
+  static Map<String, HorarioAtencion> _convertirDias(Map dias) {
     final resultado = <String, HorarioAtencion>{};
+
     for (final entrada in dias.entries) {
       final valor = entrada.value;
       if (valor is! Map) continue;
       resultado[entrada.key as String] =
           HorarioAtencion.desdeMapa(Map<String, dynamic>.from(valor));
     }
+
     return resultado;
   }
 
